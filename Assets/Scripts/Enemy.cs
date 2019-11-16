@@ -6,28 +6,21 @@ public class Enemy : MovingObject
 {
 	public int playerDamage;
 
-	private Animator animator; 
+	private Animator animator;
 	private Transform target;
 	private bool skipMove;
 
-    // Start is called before the first frame update
-    protected override void Start()
+  protected override void Start()
     {
+				GameManager.instance.AddEnemyToList(this);
         animator = GetComponent<Animator>();
         target = GameObject.FindGameObjectWithTag("Player").transform;
         base.Start();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
-    protected override void AttemptMove <T> (int xDir, int yDir)
-	{
-		if(skipMove)
-		{
+  protected override void AttemptMove <T> (int xDir, int yDir) {
+		if(skipMove) {
 			skipMove = false;
 			return;
 		}
@@ -40,6 +33,20 @@ public class Enemy : MovingObject
 		int xDir = 0;
 		int yDir = 0;
 
-		if (Mathf.Abs(target.position.x - transform.position.x) - float.Epsilon)
+		if (Mathf.Abs(target.position.x - transform.position.x) < float.Epsilon){
+			yDir = target.position.y > transform.position.y ? 1 : -1;
+		}
+		else {
+			xDir = target.position.x > transform.position.x ? 1 : -1;
+		}
+
+		AttemptMove<Player>(xDir, yDir);
+	}
+
+	protected override void OnCantMove <T> (T component)
+	{
+		Player hitPlayer = component as Player;
+		animator.SetTrigger("enemyAttack");
+		hitPlayer.LoseFood(playerDamage);
 	}
 }
